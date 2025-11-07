@@ -15,49 +15,33 @@ on:
         description: 'Tag name for the release (e.g., v1.0.0)'
         required: true
         default: 'v1.0.0'
-      prelease-notes:
-        description: 'Release notes for the release'
+      pre-release:
+        description: 'Is this a pre-release?'
         required: false
-        default:  false
+        default: false
         type: boolean
 
-
+permissions:
+  contents: write
+  
 
 jobs:
-  create-package-release:
-    permissions:
-      contents: write
-      packages: write
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Create zip package
-        id: zip-repository
-        uses: thedoctor0/zip-release@0.7.6
-        with:
-          file-name: 'repository-package.zip'
-          exclusions: |
-            .github/**
-            **/*.yml
-            **/*.yaml
-            **/*.md
-            **/node_modules/**
-            **/tests/**
-
-      - name: Create Release
-        id: create_release
-        uses: ncipollo/release-action@v1.14.0
-        with:
-            tag: ${{ github.event.inputs.tag-name }}
-            name: ${{ github.event.inputs.release-name }}
-            prerelease: ${{ github.event.inputs.prelease-notes }}
-            files: repository-package.zip
     
-    name: Upload Release Asset
+  package-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: create zip package
+        id: create_zip
+        run: |
+            ZIP_FILE="repository-package-${{ github.event.inputs.tag-name }}.zip"
+            git archive -o $ZIP_FILE HEAD
+            echo "zip-file=$ZIP_FILE" >> $GITHUB_OUTPUT
+            
 
- 
+      
 
-  
+        
+        
+        
