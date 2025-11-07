@@ -1,0 +1,27 @@
+name: Package and Release zip
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - '.github/workflows/package-release.yml'
+permissions:
+      contents: read
+      packages: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up release package
+        run: |
+          mkdir -p release
+          zip -r release/project-package.zip src/
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: project-package
