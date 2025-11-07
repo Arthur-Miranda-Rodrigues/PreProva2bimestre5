@@ -38,6 +38,17 @@ jobs:
             ZIP_FILE="repository-package-${{ github.event.inputs.tag-name }}.zip"
             git archive -o $ZIP_FILE HEAD
             echo "zip-file=$ZIP_FILE" >> $GITHUB_OUTPUT
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.tag-name }}
+          release_name: ${{ github.event.inputs.release-name }}
+          draft: false
+          prerelease: ${{ github.event.inputs['pre-release'] }}
+          body: "Release ${{ github.event.inputs.release-name }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             
 
       
