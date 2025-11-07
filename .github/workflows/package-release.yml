@@ -26,10 +26,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: create release zip
+      - name: create zip package
+        id: create_zip
         run: |
             VERSION=${{ github.event.inputs.version }}
-            ZIP_NAME="repository-release-v${VERSION}.zip"
+            ZIP_NAME="repository-package-v${VERSION}.zip"
             git archive -o $ZIP_NAME HEAD
+            echo "zip_name=$ZIP_NAME" >> $GITHUB_OUTPUT
+            
         
         
