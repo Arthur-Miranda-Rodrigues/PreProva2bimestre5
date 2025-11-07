@@ -2,9 +2,8 @@ name: Package and Release repository zip
 
 on:
   push:
-    branches:
-      - main
-      - 'release/**'
+      tags: 
+        - 'v*.*.*'
   workflow_dispatch:
     inputs:
       tag_name:
