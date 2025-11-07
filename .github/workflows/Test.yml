@@ -1,0 +1,51 @@
+name: Create and Release Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Version number for the release (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+      release_name:
+        description: 'Tag name for the release (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+      pre_release:
+        description: 'Is this a pre-release?'
+        required: false
+        default: false
+        type: boolean
+permissions:
+  contents: write
+jobs:
+  package-and-release:
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: create zip package
+        id: create_zip
+        run: |
+            ZIP_FILE="repository-package-${{ github.event.inputs.tag_name }}.zip"
+            git archive -o $ZIP_FILE HEAD
+            echo "zip_file=$ZIP_FILE" >> $GITHUB_OUTPUT
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.tag_name }}
+          release_name: ${{ github.event.inputs.release_name }}
+          prerelease: ${{ github.event.inputs.pre_release }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload zip to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.create_zip.outputs.zip_file }}
+          asset_name: ${{ steps.create_zip.outputs.zip_file }}
+          asset_content_type: application/zip
