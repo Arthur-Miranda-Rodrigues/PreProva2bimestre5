@@ -7,47 +7,58 @@ on:
       - 'release/**'
   workflow_dispatch:
     inputs:
-      version:
+      tag-name:
         description: 'Version number for the release (e.g., 1.0.0)'
         required: true
         default: '1.0.0'
-      tag-name:
+      release-name:
         description: 'Tag name for the release (e.g., v1.0.0)'
         required: true
         default: 'v1.0.0'
+      prelease-notes:
+        description: 'Release notes for the release'
+        required: false
+        default:  false
+        type: boolean
 
-permissions:
-  contents: write
-  
+
 
 jobs:
-  package-and-release:
+  create-package-release:
+    permissions:
+      contents: write
+      packages: write
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Create zip archive
-        run: |
-          VERSION=${{ github.event.inputs.version }}
-          ZIP_NAME="repository-${VERSION}.zip"
-          git archive -o $ZIP_NAME HEAD
-          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Create zip package
+        id: zip-repository
+        uses: thedoctor0/zip-release@0.7.6
+        with:
+          file-name: 'repository-package-${{ github.event.inputs.version }}.zip'
+          exclusions: |
+            .github/**
+            **/*.yml
+            **/*.yaml
+            **/*.md
+            **/node_modules/**
+            **/tests/**
+
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: ncipollo/release-action@v1.14.0
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: ${{ github.event.inputs['tag-name'] }}
-          release_name: Release ${{ github.event.inputs.version }}
-          draft: false
-          prerelease: false
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-            upload_url: ${{ steps.create_release.outputs.upload_url }}
-            asset_path: ${{ env.ZIP_NAME }}
-            asset_name: ${{ env.ZIP_NAME }}
-            asset_content_type: application/zip
-        
+            tag: ${{ github.event.inputs['release-name'] }}
+            name: ${{ github.event.inputs['tag-name'] }}
+            body: |
+                ## Release Notes
+                ${{ github.event.inputs['prelease-notes'] }}
+            draft: false
+            prerelease: ${{ github.event.inputs['prelease-notes'] }}
+
+ 
+
+  
