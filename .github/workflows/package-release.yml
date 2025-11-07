@@ -1,27 +1,32 @@
-name: Package and Release zip
+name: Package and Release repository zip
+
 on:
   push:
     branches:
       - main
-    paths:
-      - 'src/**'
-      - '.github/workflows/package-release.yml'
+      - 'release/**'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number for the release (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+      release_notes:
+        description: 'Release notes for the version'
+        required: false
+        default: 'Initial release'
+
 permissions:
-      contents: read
-      packages: write
+  contents: write
+  
+
 jobs:
-  build:
+  package-and-release:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up release package
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Show version input
         run: |
-          mkdir -p release
-          zip -r release/project-package.zip src/
+          echo "Release version: ${{ github.event.inputs.version }}"
 
-      - name: Upload release artifact
-        uses: actions/upload-artifact@v5
-        with:
-          name: project-package
